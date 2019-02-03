@@ -6,6 +6,7 @@
 #fichier servant à nettoyer un fichier .srt 
 #et récupérer les lignes de dialogue le composant.
 
+import codecs
 import re
 
 url_regex = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
@@ -73,7 +74,7 @@ def parse(filename):
 
 	#A COMPLETER
 
-	with open(filename, "r") as file:
+	with codecs.open(filename, "r", 'utf-8') as file:
 		strings = file.readlines()
 
 		newlines = []
