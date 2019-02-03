@@ -43,6 +43,12 @@ def firstPerson(line):
 	-le seul cas en anglais où une majuscule ne commence par la phrase-
 	suppose une phrase en anglais.
 	"""
+	if len(line) == 1:
+		if line[0] == "I":
+			return True
+		else: 
+			return False
+
 	if line[0] == "I" and line[1] in " '":
 		return True
 	return False
@@ -83,15 +89,20 @@ def parse(filename):
 
 					text = re.sub(startingTag_regex,'', text)
 					text = re.sub(closingTag_regex,'', text)
+					if text != "":
 
-					#dans ce cas on considère comme faisant partie de la ligne précédente
-					if islowercase(text[0]) or (text[0] == ','):
-						newlines[-1] = newlines[-1] + " " + text
-					elif firstPerson(text) and newlines[-1][-1] not in ".?":
-						newlines[-1] = newlines[-1] + " " + text
-					else:
-						newlines.append(text)
+						if len(newlines) != 0:
+							#dans ces cas on considère comme faisant partie de la ligne précédente:
+							if islowercase(text[0]) or (text[0] == ','):
+								newlines[-1] = newlines[-1] + " " + text
+							elif firstPerson(text) and newlines[-1][-1] not in ".?":
+								newlines[-1] = newlines[-1] + " " + text
+							else:
+								newlines.append(text)
+						else:
+							newlines.append(text)
 			i += 1
 
-		for line in newlines:
-			print(line)
+		return newlines
+
+
