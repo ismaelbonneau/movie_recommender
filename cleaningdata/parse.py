@@ -27,7 +27,7 @@ for serie in os.listdir(path):
 					lines = srtparser.parse(episode)
 					lines = "\n".join(lines)
 					newfilename = os.path.basename(os.path.splitext(episode)[0])
-					with open(os.path.join(path,serie+os.sep+season+os.sep+newfilename+".lines"), "w") as file:
+					with codecs.open(os.path.join(path,serie+os.sep+season+os.sep+newfilename+".lines"), "w", "utf-8") as file:
 						file.write(lines)
 					os.remove(episode)
 
