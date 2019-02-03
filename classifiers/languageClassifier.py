@@ -13,23 +13,6 @@ import numpy as np
 
 languages = ['english', 'french', 'spanish', 'russian', 'italian', 'portuguese', 'german', 'turkish', 'arabic']
 
-def quickLanguageDetector(text):
-	"""
-	detecte le langage d'un texte.
-	marche de façon très simple: regarde combien de stopwords
-	d'un langage donné le texte contient.
-	moins précis qu'un calcul de stopwords sur le texte mais plus rapide
-	nécessite une entrée en utf 8
-	"""
-	tokens_set = wordpunct_tokenize(text)
-	tokens_set = set([token.lower() for token in tokens_set])
-
-	response = []
-	for language in languages:
-		stopwords_set = set(stopwords.words(language))
-		response.append(len(tokens_set.intersection(stopwords_set)))
-	return languages[np.argmax(np.array(response))]
-
 
 def languageDetector(text):
 	"""
