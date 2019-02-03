@@ -24,9 +24,9 @@ def quickLanguageDetector(text):
 	i = 0
 	for language in languages:
 		stopwords_set = set(stopwords.words(language))
-
-		print("intersection avec "+language+" : "+str(len(tokens_set.intersection(stopwords_set))))
 		response[i] = len(tokens_set.intersection(stopwords_set))
 		i+=1
 	return languages[np.argmax(response)]
+
+
 
