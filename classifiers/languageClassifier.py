@@ -36,9 +36,3 @@ def languageDetector(text):
 
 	return languages[np.argmax(np.array(response))]	
 
-
-filename = "01__1______.lines"
-
-with codecs.open(filename, "r", "utf-8") as f:
-	text = f.read()
-	print(quickLanguageDetector(text))
