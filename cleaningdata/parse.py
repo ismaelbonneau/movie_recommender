@@ -8,28 +8,60 @@
 import codecs
 import srtparser
 import os
+import sys
 import glob
+sys.path.append(os.path.abspath('../classifiers'))
+import languageClassifier
 
-#dataset path
-path = "/root/Documents/PLDAC/data/"
+def cleanData( path ):
+    toDelete = []
+    for serie in os.listdir(path):
+        print(os.path.basename(serie))
+        #check the seasons in the serie
+        seasons = os.listdir(os.path.join(path,serie))
+        #if no season then delete serie directory later
+        seasonCount = len(seasons)
 
-for serie in os.listdir(path):
-    print(os.path.basename(serie))
-    for season in os.listdir(os.path.join(path,serie)):
-        if os.path.isdir(os.path.join(path,serie+os.sep+season)):
-            if season == "-1":
-                #supprimer le répertoire -1 qui est toujours vide
-                os.rmdir(os.path.join(path,serie+os.sep+season))
-            else:
-                print("\tsaison: "+season)
-                episodes = glob.glob(os.path.join(path,serie+os.sep+season+os.sep+"*.txt"))
-                for episode in episodes:
-                    print("\t\t"+os.path.basename(os.path.splitext(episode)[0]))
-                    lines = srtparser.parse(episode)
-                    lines = "\n".join(lines)
-                    newfilename = os.path.basename(os.path.splitext(episode)[0])
-                    with codecs.open(os.path.join(path,serie+os.sep+season+os.sep+newfilename+".lines"), "w", "utf-8") as file:
-                        file.write(lines)
-                    os.remove(episode)
+        for season in seasons:
+            if os.path.isdir(os.path.join(path,serie+os.sep+season)):
+                if season == "-1":
+                    #supprimer le répertoire -1 qui est toujours vide
+                    seasonCount=-1
+                    toDelete.append(os.path.join(path,serie+os.sep+season))
+                else:
+                    print("\tsaison: "+season)
+                    # check episodes of season
+                    episodes = glob.glob(os.path.join(path,serie+os.sep+season+os.sep+"*.txt"))
+                    #if no episodes then delete season directory later
+                    episodesCount = len(episodes)
+                    
+                    for episode in episodes:
+                        #check if empty episode
+                        if( len(episode) != 0 ):
+                            print("\t\t"+os.path.basename(os.path.splitext(episode)[0]))
+                            lines = srtparser.parse(episode)
+                            lines = "\n".join(lines)
+                            
+                            if languageClassifier.languageDetector(lines) == "english":
+                                newfilename = os.path.basename(os.path.splitext(episode)[0])
+                                with codecs.open(os.path.join(path,serie+os.sep+season+os.sep+newfilename+".lines"), "w", "utf-8") as file:
+                                    file.write(lines)
+                            else:
+                                episodesCount-=1
+                        else:
+                            episodesCount-=1
+                        os.remove(episode)
+                        
+                    if episodesCount == 0 :
+                        toDelete.append(os.path.join(path,serie+os.sep+season))
+                        seasonCount-=1
+                        
+        if seasonCount == 0:
+            toDelete.append(os.path.join(path,serie))
+            
+    for directory in toDelete:
+        os.rmdir(directory)
+        print( "Removed : " + directory )
+
 
                     

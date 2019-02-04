@@ -3,7 +3,6 @@
 
 # Ismael Bonneau & Issam Benamara
 
-import codecs
 import string
 import nltk
 from nltk.corpus import stopwords
