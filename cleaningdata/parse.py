@@ -8,7 +8,9 @@
 import codecs
 import srtparser
 import os
+import sys
 import glob
+sys.path.append(os.path.abspath('../classifiers'))
 import languageClassifier
 
 def cleanData( path ):
@@ -25,7 +27,7 @@ def cleanData( path ):
                 if season == "-1":
                     #supprimer le répertoire -1 qui est toujours vide
                     seasonCount=-1
-                    os.rmdir(os.path.join(path,serie+os.sep+season))
+                    toDelete.append(os.path.join(path,serie+os.sep+season))
                 else:
                     print("\tsaison: "+season)
                     # check episodes of season
@@ -59,5 +61,7 @@ def cleanData( path ):
             
     for directory in toDelete:
         os.rmdir(directory)
+        print( "Removed : " + directory )
+
 
                     
