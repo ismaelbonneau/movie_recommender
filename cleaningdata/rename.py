@@ -6,10 +6,10 @@ a executer une seule fois
 permet de renommer les noms de répertoire en les numérotant de 1 à 3557
 """
 
-import os, sys
+import os
 
 #dataset path
-path = "/home/ismael/Documents/movie_recommender/dataset"
+path = "/root/Documents/PLDAC/data/"
 
 print("searching for directories to rename...")
 

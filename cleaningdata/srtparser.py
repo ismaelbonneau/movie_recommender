@@ -74,12 +74,11 @@ def parse(filename):
 
 	#A COMPLETER
 
-	with codecs.open(filename, "r", 'utf-8') as file:
+	with codecs.open(filename, "r", 'utf-8', errors='ignore') as file:
 		strings = file.readlines()
 
 		newlines = []
 		i = 0
-		current_sentence = ""
 		while i < len(strings):
 			line = strings[i]
 			#ne garder que les lignes de texte
