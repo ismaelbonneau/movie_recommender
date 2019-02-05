@@ -1,7 +1,7 @@
-/root/Downloads/data/
+/home/ismael/Documents/movie_recommender/dataset
 
 ONLY THE FIRST LINE IS TAKEN INTO ACCOUNT AS THE PATH TO DATA
 
 YOU MAY USE THE REST OF THE TEXT FILE TO STORE OTHER PATHS TO QUICKLY CHANGE BETWEEN THEM AND THE ACTIVE PATH
 
-/root/Documents/PLDAC/data/
+/root/Downloads/data/
