@@ -24,3 +24,4 @@ def cleanData():
     parse.cleanData(path)
     rename.rename(path)
 
+cleanData()
