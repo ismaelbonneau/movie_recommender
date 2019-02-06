@@ -32,6 +32,7 @@ def cleanData():
 
 
 
+
 def cleanOnly( path ):
     """ 
     output :
@@ -224,4 +225,5 @@ def parse(filename):
 
 
 """ THE CALL """
+
 cleanData()
