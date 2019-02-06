@@ -47,11 +47,11 @@ def cleanOnly( path ):
     for serie in series:
         print(os.path.basename(serie))
         #check the seasons in the serie
-        serieWalk = next(os.walk(path,serie))
+        serieWalk = next(os.walk(os.path.join(path,serie)))
         seasons = serieWalk[1]
         
         for f in serieWalk[2]:
-            fp = os.path.join(path,f)
+            fp = os.path.join(os.path.join(path,serie),f)
             os.remove(fp)
             print( "Removed : " + fp )
             
@@ -223,3 +223,5 @@ def parse(filename):
 		return newlines
 
 
+""" THE CALL """
+cleanData()
