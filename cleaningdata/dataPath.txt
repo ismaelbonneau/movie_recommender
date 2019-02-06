@@ -1,6 +1,7 @@
+/home/ismael/Documents/movie_recommender/dataset
 /root/Documents/PLDAC/data/
 
-/home/ismael/Documents/movie_recommender/dataset
+
 
 ONLY THE FIRST LINE IS TAKEN INTO ACCOUNT AS THE PATH TO DATA
 
