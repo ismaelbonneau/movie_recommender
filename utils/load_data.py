@@ -30,3 +30,6 @@ def load_data(path, series=[], random=True, split=True, ratio=0.8):
 
 		else:
 			return X, Y
+	else:
+		#TODO
+		pass
