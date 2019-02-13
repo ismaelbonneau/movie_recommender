@@ -12,7 +12,6 @@ import glob
 from sklearn.model_selection import train_test_split
 
 
-
 def first(iterable, condition = lambda x: True):
 	"""
     Returns the first item in the `iterable` that
