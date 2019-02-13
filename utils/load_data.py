@@ -48,7 +48,7 @@ def getMostImportantSeries(path, byepisodes=True):
 	return series[::-1], count[::-1]
 
 
-def load_data(path, series=[], nbclass=10, random=True, split=True, ratio=0.8):
+def load_data(path, featureExtractor=None, series=[], nbclass=10, random=True, split=True, ratio=0.8):
 	"""
 
 	"""
@@ -65,7 +65,10 @@ def load_data(path, series=[], nbclass=10, random=True, split=True, ratio=0.8):
 		for i in series_index:
 			for ep in glob.glob(path+os.sep+listseries[i]+os.sep+"*"+os.sep+"*.lines"):
 				with open(ep, "r", encoding="utf-8") as f:
-					X.append(f.read())
+					if featureExtractor == None:
+						X.append(f.read())
+					else:
+						X.append(featureExtractor.transform(f.read()))
 					Y.append(classe)
 			classe += 1
 
@@ -82,8 +85,11 @@ def load_data(path, series=[], nbclass=10, random=True, split=True, ratio=0.8):
 			for saison in os.listdir(os.path.join(path, serie)):
 				for ep in os.listdir(os.path.join(path+os.sep+serie,saison)):
 					with open(os.path.join(path+os.sep+serie,saison+os.sep+ep), "r", encoding="utf-8") as f:
-						X.append(f.read())
-					Y.append(i)
+						if featureExtractor == None:
+							X.append(f.read())
+						else:
+							X.append(featureExtractor.transform(f.read()))
+						Y.append(i)
 			i += 1
 
 		if split:
