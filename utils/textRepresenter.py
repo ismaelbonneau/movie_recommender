@@ -32,7 +32,7 @@ class textRepresenter:
 		self.lemmatise = lemmatise
 		self.frecDict = frecDict
 
-	def getTextRepresentation(self, input_):
+	def transform(self, input_):
 
 		if self.fromfile:
 			with open(input_, "r", encoding="utf-8") as f:
