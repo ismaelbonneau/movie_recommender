@@ -24,7 +24,7 @@ listeseries = ["2567_House", "2956_Criminal_Minds", "1262_Lost", "175_The_Walkin
 "217_Game_of_Thrones", "1906_The_Vampire_Diaries"]
 
 
-X_train, X_test, y_train, y_test = load_data(path, series=listeseries, split=True, ratio=0.8)
+series, (X_train, X_test, y_train, y_test) = load_data(path, nbclass=40, split=True, ratio=0.8)
 
 count_vect = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}', stop_words=stopwords.words('english'), strip_accents='ascii')
 count_vect.fit(X_train + X_test)
@@ -46,5 +46,9 @@ bayes.fit(xtrain_count, train_y)
 predictions = bayes.predict(xtest_count)
 
 accuracy = metrics.accuracy_score(predictions, test_y)
+print("accuracy: "accuracy)
 
+predictions = np.array(predictions)
+y_test = np.array(y_test)
 
+erreurs = predictions != y_test
