@@ -17,6 +17,31 @@ from collections import Counter
 
 
 
+
+class wordLemmatizer():
+	"""
+
+	"""
+
+	def __init__(self, fromfile=False):
+
+		self.fromfile = fromfile
+
+	def transform(self, input_):
+		if self.fromfile:
+			with open(input_, "r", encoding="utf-8") as f:
+				text = (f.read()).lower()
+		else:
+			text = word_tokenize(input_.lower()) #convertir le texte en minuscule
+		tag_map = defaultdict(lambda : wn.NOUN)
+		final_words = []
+		word_Lemmatized = WordNetLemmatizer()
+		for word, tag in pos_tag(text): #lemmatiser les mots et ne pas retenir les stopwords et la ponctuation 
+			if word not in stopwords.words('english') and word.isalpha():
+				word_Final = word_Lemmatized.lemmatize(word,tag_map[tag[0]])
+				final_words.append(word_Final)
+		return " ".join(final_words)
+
 class wordFreqDict():
 	"""
 
