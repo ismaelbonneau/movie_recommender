@@ -13,11 +13,21 @@ from sklearn.model_selection import train_test_split
 
 
 
+def first(iterable, condition = lambda x: True):
+	"""
+    Returns the first item in the `iterable` that
+    satisfies the `condition`.
+
+    thanks to Caridorc 
+    https://stackoverflow.com/questions/2361426/get-the-first-item-from-an-iterable-that-matches-a-condition/2361899s
+    """
+	return next(x for x in iterable if condition(x))
+
 def getMostImportantSeries(path, byepisodes=True):
 	"""
 	retourne les séries ordonnées par leur nombre d'épisode décroissant
 	"""
-	listseries = glob.glob(path)
+	listseries = glob.glob(path+os.sep+"*")
 
 	series = []
 	count = []
@@ -38,14 +48,31 @@ def getMostImportantSeries(path, byepisodes=True):
 	return series[::-1], count[::-1]
 
 
-def load_data(path, series=[], random=True, split=True, ratio=0.8):
+def load_data(path, series=[], nbclass=10, random=True, split=True, ratio=0.8):
 	"""
 
 	"""
 	if series == []:
-		#TODO
-		pass
+		#si aucune série n'est spécifiée, on tire des séries au hasard
+		listseries, count = getMostImportantSeries(path)
+		borne = count.index(first(count, lambda i: i < 10))
+		del count
 
+		series_index = np.random.choice(borne - 1, nbclass, replace=False)
+		classe = 0
+		X = []
+		Y = []
+		for i in series_index:
+			for ep in glob.glob(path+os.sep+listseries[i]+os.sep+"*"+os.sep+"*.lines"):
+				with open(ep, "r", encoding="utf-8") as f:
+					X.append(f.read())
+					Y.append(classe)
+			classe += 1
+
+		if split:
+			return [listseries[i] for i in series_index], train_test_split(X, Y, test_size=(1. - ratio))
+		else:
+			return [listseries[i] for i in series_index], (X, Y)
 	else:
 		X = []
 		Y = []
@@ -54,7 +81,7 @@ def load_data(path, series=[], random=True, split=True, ratio=0.8):
 			#print(os.path.basename(serie))
 			for saison in os.listdir(os.path.join(path, serie)):
 				for ep in os.listdir(os.path.join(path+os.sep+serie,saison)):
-					with open(os.path.join(path+os.sep+serie,saison+os.sep+ep), encoding="utf-8") as f:
+					with open(os.path.join(path+os.sep+serie,saison+os.sep+ep), "r", encoding="utf-8") as f:
 						X.append(f.read())
 					Y.append(i)
 			i += 1
@@ -67,6 +94,3 @@ def load_data(path, series=[], random=True, split=True, ratio=0.8):
 
 
 
-countepisodes, series = getMostImportantSeries("../dataset/*")
-print(countepisodes[-1])
-print(series[-1])
