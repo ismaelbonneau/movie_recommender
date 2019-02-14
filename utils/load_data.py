@@ -54,10 +54,13 @@ def load_data(path, featureExtractor=None, series=[], nbclass=10, random=True, s
 	if series == []:
 		#si aucune série n'est spécifiée, on tire des séries au hasard
 		listseries, count = getMostImportantSeries(path)
-		borne = count.index(first(count, lambda i: i < 10))
-		del count
+		if random == True:
+			borne = count.index(first(count, lambda i: i < 10))
+			del count
 
-		series_index = np.random.choice(borne - 1, nbclass, replace=False)
+			series_index = np.random.choice(borne - 1, nbclass, replace=False)
+		else:
+			series_index = range(nbclass)
 		classe = 0
 		X = []
 		Y = []
