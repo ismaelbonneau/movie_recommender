@@ -47,7 +47,10 @@ class NaiveBayes:
 
 	def getErrors(self, labels, series):
 
-
+		#renommage pour affichage plus propre
+		nomseries = [" ".join(x.split("_")[1:]) for x in series]
+		prout = [nomseries[i] for i in labels]
+		prout = dict(Counter(prout))
 		#au cas où
 		self.predictions = np.array(self.predictions)
 		labels = np.array(labels)
@@ -56,21 +59,24 @@ class NaiveBayes:
 		errors_dict = {}
 		for i, v in enumerate(erreurs):
 			if v:
-				nom = " ".join(series[labels[i]].split("_")[1:])
+				nom = nomseries[labels[i]]
 				if nom not in errors_dict:
 					errors_dict[nom] = 1
 				else:
 					errors_dict[nom] += 1
 
+		#pour exprimer en pourcentage d'épisodes mal classifés
+		for x in errors_dict:
+			errors_dict[x] /= prout[x]
 		errors_dict = sorted(errors_dict.items(), key=operator.itemgetter(1), reverse=True)
 		names = [x[0] for x in errors_dict]
 		errors = [x[1] for x in errors_dict]
 		#bar chart du nombre d'erreur pour chaque série
 		plt.figure(figsize=(20,10))
-		plt.ylabel("nombre d'erreurs")
-		plt.title("nombre d'erreurs pour chaque serie")
+		plt.ylabel("pourcentage de mauvaise classification")
+		plt.title("pourcentage de mauvaise classification pour chaque serie")
 		plt.bar(range(len(errors_dict)), errors, width=0.35)
-		plt.xticks(range(len(errors_dict)), names)
+		plt.xticks(range(len(errors_dict)), names, rotation='vertical')
 		plt.show()
 
 		return errors_dict
