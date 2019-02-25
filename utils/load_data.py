@@ -79,7 +79,7 @@ def load_data(path, filetype="lines",featureExtractor=None, series=[], nbclass=1
 			classe += 1
 
 		if split:
-			return [listseries[i] for i in series_index], train_test_split(X, Y, test_size=(1. - ratio))
+			return [listseries[i] for i in series_index], train_test_split(X, Y, test_size=(1. - ratio), random_state=1)
 		else:
 			return [listseries[i] for i in series_index], (X, Y)
 	else:
@@ -102,7 +102,7 @@ def load_data(path, filetype="lines",featureExtractor=None, series=[], nbclass=1
 			i += 1
 
 		if split:
-			return train_test_split(X, Y, test_size=(1. - ratio))
+			return train_test_split(X, Y, test_size=(1. - ratio), random_state=1)
 
 		else:
 			return X, Y
