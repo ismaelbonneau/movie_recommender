@@ -71,23 +71,25 @@ if r.status_code == 200:
 
     for name in series:
         #si le nom de série contient une date, on doit en tenir compte
+        name = name.replace("_s__", "s_") #trick pour ne pas louper les grey's anatomy et autre à cause du S de la possession
+        name = name.replace("_s_", "s_")
         contientdate = re.search("\(\d\d\d\d\)", name)
         date = None
         if contientdate:
-            date = contientdate.group(0) #extraction de l'année (année de première sortie)
+            date = str(contientdate.group(0)).replace("(", "").replace(")", "") #extraction de l'année (année de première sortie)
             parsedname = ("%20".join([mot for mot in name.split("_")[1:-1]])).rstrip()
             truename = " ".join([mot for mot in name.split("_")[1:-1]])
         else:
             parsedname = ("%20".join([mot for mot in name.split("_")[1:]])).rstrip()
             truename = " ".join([mot for mot in name.split("_")[1:]])
-        print("looking for ", parsedname)
+        print("looking for ", name)
         req = requests.get("https://api.thetvdb.com/search/series", params={"name": parsedname}, headers={'Authorization': "Bearer "+access_token})
         found = False
         ID = ""
         if req.status_code == 200:
             response = req.json()['data']
             for rep in response:
-                if rep["seriesName"] == truename:
+                if rep["seriesName"] == truename or rep["slug"] == "-".join([mot.lower() for mot in parsedname.split("%20")]) or truename in rep["aliases"]:
                     if date != None:
                         if rep["firstAired"].split("-")[0] == date:
                             print("found {}, id={}".format(truename, rep["id"]))
@@ -110,7 +112,7 @@ if r.status_code == 200:
             else:
                 print("series API request failed - error {}".format(req2.status_code))
             
-            
+    print("-------------------------------")    
     print("found {} series out of {}".format(len(dataframe), len(series)))
     
     dataframe.to_csv(path_or_buf="series.csv", header=True, encoding="utf-8")
