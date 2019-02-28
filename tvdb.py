@@ -82,7 +82,7 @@ if r.status_code == 200:
         else:
             parsedname = ("%20".join([mot for mot in name.split("_")[1:]])).rstrip()
             truename = " ".join([mot for mot in name.split("_")[1:]])
-        print("looking for ", name)
+        #print("looking for ", truename)
         req = requests.get("https://api.thetvdb.com/search/series", params={"name": parsedname}, headers={'Authorization': "Bearer "+access_token})
         found = False
         ID = ""
@@ -92,12 +92,12 @@ if r.status_code == 200:
                 if rep["seriesName"] == truename or rep["slug"] == "-".join([mot.lower() for mot in parsedname.split("%20")]) or truename in rep["aliases"]:
                     if date != None:
                         if rep["firstAired"].split("-")[0] == date:
-                            print("found {}, id={}".format(truename, rep["id"]))
+                            #print("found {}, id={}".format(truename, rep["id"]))
                             found = True
                             ID = str(rep['id'])
                             seriesname = rep["seriesName"]
                     else:
-                        print("found {}, id={}".format(truename, rep["id"]))
+                        #print("found {}, id={}".format(truename, rep["id"]))
                         found = True
                         ID = str(rep['id'])
                         seriesname = rep["seriesName"]
@@ -111,6 +111,8 @@ if r.status_code == 200:
                 dataframe.loc[len(dataframe)] = row #très inefficace
             else:
                 print("series API request failed - error {}".format(req2.status_code))
+        else:
+            print("not found ", name)
             
     print("-------------------------------")    
     print("found {} series out of {}".format(len(dataframe), len(series)))
