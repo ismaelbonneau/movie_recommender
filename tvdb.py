@@ -86,21 +86,36 @@ if r.status_code == 200:
         req = requests.get("https://api.thetvdb.com/search/series", params={"name": parsedname}, headers={'Authorization': "Bearer "+access_token})
         found = False
         ID = ""
-        if req.status_code == 200:
+        if req.status_code == 200 and "Error" not in req.json():
             response = req.json()['data']
-            for rep in response:
-                if rep["seriesName"] == truename or rep["slug"] == "-".join([mot.lower() for mot in parsedname.split("%20")]) or truename in rep["aliases"]:
-                    if date != None:
-                        if rep["firstAired"].split("-")[0] == date:
+            if len(req.json()) == 1:
+                response = req.json()['data'][0]
+                if date != None:
+                    if response["firstAired"].split("-")[0] == date:
+                        #print("found {}, id={}".format(truename, rep["id"]))
+                        found = True
+                        ID = str(response['id'])
+                        seriesname = response["seriesName"]
+                else:
+                    #print("found {}, id={}".format(truename, rep["id"]))
+                    found = True
+                    ID = str(response['id'])
+                    seriesname = response["seriesName"]
+                
+            else:
+                for rep in response:
+                    if rep["seriesName"] == truename or rep["slug"] == "-".join([mot.lower() for mot in parsedname.split("%20")]) or truename in rep["aliases"]:
+                        if date != None:
+                            if rep["firstAired"].split("-")[0] == date:
+                                #print("found {}, id={}".format(truename, rep["id"]))
+                                found = True
+                                ID = str(rep['id'])
+                                seriesname = rep["seriesName"]
+                        else:
                             #print("found {}, id={}".format(truename, rep["id"]))
                             found = True
                             ID = str(rep['id'])
                             seriesname = rep["seriesName"]
-                    else:
-                        #print("found {}, id={}".format(truename, rep["id"]))
-                        found = True
-                        ID = str(rep['id'])
-                        seriesname = rep["seriesName"]
                     
         if found:
             #2e appel d'api:
