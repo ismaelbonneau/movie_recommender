@@ -38,6 +38,14 @@ series = ['2733_NCIS__Los_Angeles', '2956_Criminal_Minds', '1041_CSI__Crime_Scen
  '3314_Shameless', '1906_The_Vampire_Diaries', '196_Smallville']
 
 
+from utils.load_data import getMostImportantSeries
+
+path = "dataset"
+
+seriesplusimportantes, _ = getMostImportantSeries(path)
+
+lol = list(set(series) | set(seriesplusimportantes[:1000]))
+series = lol
 series = [serie.replace("__", "_") for serie in series]
 
 #==================================================#
@@ -127,7 +135,7 @@ if r.status_code == 200:
             else:
                 print("series API request failed - error {}".format(req2.status_code))
         else:
-            print("not found ", name)
+            print("not found ", name, parsedname, truename, date) #debugging
             
     print("-------------------------------")    
     print("found {} series out of {}".format(len(dataframe), len(series)))
