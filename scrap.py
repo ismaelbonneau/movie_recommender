@@ -11,7 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 from bs4 import BeautifulSoup
 
@@ -44,18 +44,27 @@ list_ids = series["imdbId"]
 user_ratings = {}
 
 for id_ in list_ids:
+    if type(id_) is float:
+        continue
     url = urlbase + id_ + urltail
     driver.get(url)
     print("loading url {}...".format(url))
     #trouver le bouton responsable du chargement des résultats suivants
-    loadmore = driver.find_element_by_id('load-more-trigger')
-    while loadmore:
+    found = False
+    try:
+        loadmore = driver.find_element_by_id('load-more-trigger')
+        found = True
+    except NoSuchElementException:
+        found = False
+    while found and loadmore:
         #le cliquer
         loadmore.click()
         try:
             #attendre que ce bouton soit à nouveau visible (scroll) sur la page
             loadmore  = WebDriverWait(driver, 3).until(EC.visibility_of_element_located((By.ID, 'load-more-trigger')))
         except TimeoutException:
+            break
+        except NoSuchElementException:
             break
     
     #quand on arrive ici on a chargé tous les avis possibles
@@ -72,10 +81,15 @@ for id_ in list_ids:
         users_list.append(elt.parent.parent.next_sibling.next_sibling.next_sibling.next_sibling.span.a.string)
         
     for i in range(len(ratings_list)):
-        user_ratings.setdefault(users_list[i], []).append((id_, ratings_list[i]))
+        user_ratings.setdefault(users_list[i], {})[id_] = ratings_list[i] #dictionnaire à 2 entrées
             
     print("{} ratings found.".format(len(ratings_list)))
-    
-    #ajouter les ratings dans un csv
-    
-    #TODO
+
+#ajouter les ratings dans un csv
+
+user_item = pd.DataFrame(user_ratings)
+
+print("{} series by {} users matrix created.".format(user_item.shape[0], user_item.shape[1]))
+print(user_item.head(10))
+
+user_item.to_csv(path_or_buf="userratings.csv", header=True, encoding="utf-8")
