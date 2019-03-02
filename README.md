@@ -9,7 +9,11 @@ Elaboration et utilisation de métriques de similarité entre séries basées su
 de metadata de l'API Omdb et de ratings utilisateur.
 
 
+> web scraping
+> text mining
+> mesures de similarité
+> collaborative filtering
+> word2vec
 
-
-lien vers le carnet de bord: https://docs.google.com/document/d/1fcwJlkanTJztTj3bcPi_Tmd0wfZMp0hrHsEOIh97uBg/edit?usp=sharing
+pour les enseignants, lien vers le carnet de bord: https://docs.google.com/document/d/1fcwJlkanTJztTj3bcPi_Tmd0wfZMp0hrHsEOIh97uBg/edit?usp=sharing
 
