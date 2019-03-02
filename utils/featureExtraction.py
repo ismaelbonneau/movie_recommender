@@ -14,7 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import model_selection, naive_bayes, svm
 from sklearn.metrics import accuracy_score
 from collections import Counter
-
+import glob
 
 
 class NEextractor():
@@ -36,10 +36,10 @@ class NEextractor():
         customstopwords = stopwords.words('english') + ["yes","yeah","hmm","hey","nah","oh","uh","okay","okey","ye","hey","na","ca","ok","got","come","back","up"]
         corpus = []
         for serie in series:
-            listepisodes = glob.glob(path+"/"+serie+"/*/*.tokens") #texte lemmatisé!
+            listepisodes = glob.glob(path_to_dataset+"/"+serie+"/*/*.tokens") #texte lemmatisé!
             text = ""
             for episode in listepisodes:
-                with codecs.open(episode, "r", "utf-8") as file:
+                with open(episode, "r", encoding="utf-8") as file:
                     text += " " + file.read()
             corpus.append(text)
 
