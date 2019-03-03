@@ -65,7 +65,7 @@ class CustomSim():
             st.build_tokens()
         
         series_yeilded = LoadingTokenizer(self.path, self.series, corpusFormat, self.tokenizer)
-            
+        
         self.vec_size = vec_size
         self.word_vector_model = gensim.models.Word2Vec(series_yeilded, size=vec_size, window=word_window, min_count=word_count_min)
         self.word_vector_model.save(self.w2vPath+filename_model_save)
@@ -109,7 +109,7 @@ class CustomSim():
         self.similarityMeasurer = similarityMeasurer
         
     def buildVectors(self, fileSaveName, corpusFormat = ".lines", nbIterators = 2):
-        l = [LoadingTokenizer(self.path, self.series, corpusFormat, self.tokenizer) for i in range(nbIterators)]
+        l = [LoadingTokenizer(self.path, self.series, corpusFormat, self.tokenizer, numpify = True) for i in range(nbIterators)]
         self.word_index, self.Xencoded = self.vectorizer(l)
         with open(self.w2vPath+fileSaveName+"WI", "wb") as f:
             pickle.dump(self.word_index, f)
@@ -132,7 +132,7 @@ class CustomSim():
         
     def calculateSimilarities( self, fileSaveName ):
         self.sim = self.similarityMeasurer(self.Xcombined)
-        np.save(self.w2vPath+fileSaveName+'.npy', sim)
+        np.save(self.w2vPath+fileSaveName+'.npy', self.sim)
         return self.sim
     
     def tokenize_ex(self, text):
@@ -190,27 +190,37 @@ class SavingTokenizer(object):
                 with open(episode, "r", encoding="utf-8") as file:
                     tokenized = self.tokenizer(file.read())
                     serie_tokens += tokenized
-            tmp = np.array(serie_tokens)
-            print("saving in"+self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy')
-            np.save(self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy', tmp)
+#            tmp = np.array(serie_tokens)
+#            print("saving in"+self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy')
+#            np.save(self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy', tmp)
+            with open(self.path+'/'+serie+"/"+self.tokenizer.__name__, "wb") as f:
+                pickle.dump(serie_tokens, f)
 
 class LoadingTokenizer(object):
-    def __init__(self, path, series, corpusFormat, tokenizer):
+    def __init__(self, path, series, corpusFormat, tokenizer, numpify = False ):
         self.path = path
         self.series = series
         self.corpusFormat = corpusFormat
         self.tokenizer = tokenizer
+        self.numpify = numpify
     def __iter__(self):
         for serie in self.series:
-            yield np.load(self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy')
+#            print("loading "+self.path+'/'+serie+"/"+self.tokenizer.__name__)
+            with open(self.path+'/'+serie+"/"+self.tokenizer.__name__, "rb") as f:
+                tmp = pickle.load(f)
+#            tmp = np.load(self.path+'/'+serie+"/"+self.tokenizer.__name__+'.npy')
+            if self.numpify:
+                yield np.array(tmp)
+            else:
+                yield tmp
     
 """ The variations """
 # variation 1 :
 #     nbSeries = 100
-#     vec_size = 100
+#     vec_size = 50
 #     word_window = 8
 #     word_count_min = 5
-#     tokenizer = tokenize_ex ( from the class itself )
+#     tokenizer = tokenize_simple
 #     vectorizer = tf-idf ( min df = 1 )
 #     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
 #     similarityMeasure = cosine_similarity
@@ -247,7 +257,9 @@ class LoadingTokenizer(object):
 
 # this is just for SAVING, do not try to load with this it will just overwrite
 variation = 1
+import time
 
+start = time.time()
 
 """ THE PIPELINE """        
 
@@ -258,7 +270,7 @@ path = "/root/Documents/PLDAC/data"
 # repertoir pour stocker les calculs de word2vec et les fichiers resultats
 w2vPath = "/root/Documents/PLDAC/Word2VecData/"
 # nombre de series que l'on veut étudier
-nbSeries = 3
+nbSeries = 100
 # taille du vecteur embedding des mots
 vec_size = 50
 # nb de mots voisins pris en comptes lors de l'embedding
@@ -267,10 +279,11 @@ word_window = 8
 word_count_min = 5
 # nom du fichier de sauvegarde du model word2vec
 filename_model_save = "w2v_model_"+str(variation)
-
+# set to True if the tokenization used has already been calculated
+alreadyTokenized = False
 
 print("Initializing")
-obj = CustomSim(path, nbSeries, w2vPath, alreadyTokenized = False)
+obj = CustomSim(path, nbSeries, w2vPath, alreadyTokenized = alreadyTokenized)
 # désignation du tokenizer
 obj.setTokenizer(tkns.tokenize_simple)
 # désignation du vectorizer
@@ -318,3 +331,7 @@ plt.xticks(range(len(series)), [" ".join(x.split("_")[1:]) for x in series], rot
 plt.yticks(range(len(series)), [" ".join(x.split("_")[1:]) for x in series])
 plt.show()
 
+end = time.time()
+
+print("Time")
+print(end-start)
