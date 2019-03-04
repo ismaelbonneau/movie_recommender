@@ -14,6 +14,7 @@ import pickle
 import gensim
 from sklearn.metrics.pairwise import cosine_similarity
 import tokenizers as tkns
+import vectorizers as vcts
 
 
 class CustomSim():
@@ -227,20 +228,20 @@ class LoadingTokenizer(object):
 
 # variation 2 :
 #     nbSeries = 100
-#     vec_size = 200
+#     vec_size = 100
 #     word_window = 8
 #     word_count_min = 5
-#     tokenizer = tokenize_ex ( from the class itself )
+#     tokenizer = tokenize_simple
 #     vectorizer = tf-idf ( min df = 1 )
 #     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
 #     similarityMeasure = cosine_similarity
 
 # variation 3 :
 #     nbSeries = 100
-#     vec_size = 50
+#     vec_size = 200
 #     word_window = 8
 #     word_count_min = 5
-#     tokenizer = tokenize_ex ( from the class itself )
+#     tokenizer = tokenize_simple
 #     vectorizer = tf-idf ( min df = 1 )
 #     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
 #     similarityMeasure = cosine_similarity
@@ -255,8 +256,68 @@ class LoadingTokenizer(object):
 #     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
 #     similarityMeasure = cosine_similarity
 
+# variation 5 :
+#     nbSeries = 100
+#     vec_size = 100
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = porterStemmer_stopWRemove
+#     vectorizer = tf-idf ( min df = 1 )
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
+# variation 6 :
+#     nbSeries = 100
+#     vec_size = 200
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = porterStemmer_stopWRemove
+#     vectorizer = tf-idf ( min df = 1 )
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
+# variation 7 :
+#     nbSeries = 100
+#     vec_size = 50
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = wordNetLemmatizer_stopWRemove
+#     vectorizer = tf-idf ( min df = 1 )
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
+# variation 8 :
+#     nbSeries = 100
+#     vec_size = 100
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = wordNetLemmatizer_stopWRemove
+#     vectorizer = tf-idf ( min df = 1 )
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
+# variation 9 :
+#     nbSeries = 100
+#     vec_size = 200
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = wordNetLemmatizer_stopWRemove
+#     vectorizer = tf-idf ( min df = 1 )
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
+# variation 10 :
+#     nbSeries = 100
+#     vec_size = 50
+#     word_window = 8
+#     word_count_min = 5
+#     tokenizer = tokenize_simple
+#     vectorizer = count_vectorizer
+#     combiner = multiplication ( multiply each word's tf-idf with the word's embedding, then summing all vectors )
+#     similarityMeasure = cosine_similarity
+
 # this is just for SAVING, do not try to load with this it will just overwrite
-variation = 1
+variation = 10
 import time
 
 start = time.time()
@@ -273,6 +334,7 @@ w2vPath = "/root/Documents/PLDAC/Word2VecData/"
 nbSeries = 100
 # taille du vecteur embedding des mots
 vec_size = 50
+
 # nb de mots voisins pris en comptes lors de l'embedding
 word_window = 8
 # ignorer les mot ayant une occurence inférieur à ça dans tout le corpus
@@ -280,14 +342,14 @@ word_count_min = 5
 # nom du fichier de sauvegarde du model word2vec
 filename_model_save = "w2v_model_"+str(variation)
 # set to True if the tokenization used has already been calculated
-alreadyTokenized = False
+alreadyTokenized = True
 
 print("Initializing")
 obj = CustomSim(path, nbSeries, w2vPath, alreadyTokenized = alreadyTokenized)
 # désignation du tokenizer
 obj.setTokenizer(tkns.tokenize_simple)
 # désignation du vectorizer
-obj.setVectorizer(obj.tfidf_vectorizer)
+obj.setVectorizer(vcts.count_vectorizer)
 # désignation du combiner
 obj.setCombination(obj.combiner)
 # désignation de la mesure de similarité
@@ -307,6 +369,7 @@ print("Building Vectors")
 fileSaveName = "Vectors_"+str(variation)+"_"
 obj.buildVectors(fileSaveName)
 #print("Loading Vectors")
+#fileSaveName = "Vectors_5_"
 #obj.loadVectors(fileSaveName)
 
 print("Combining")
