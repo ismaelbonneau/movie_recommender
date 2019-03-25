@@ -1,0 +1,63 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*
+
+# Ismael Bonneau & Issam Benamara
+
+
+#Permet d'evaluer nos moèles de recommendation
+#a l'aide des mesures de RI, precision/rappel/F1/reciprocal rank
+
+import numpy as np
+from scipy.stats import ttest_ind
+
+class EvalIRmodel:
+
+	def __init__(self):
+		self.Beta = 2.0
+
+	def evaluate_one(self,retrieved, pertinent, k=5):
+		"""
+		calcule la précision, le rappel, le score F1 et le reciprocal rank
+		"""
+
+		evaluations = {"precision": 0, "recall": 0, "F1": 0, "reciprocal rank": 0}
+		intersection = set(retrieved[:k]) & set(pertinent) 
+		if len(retrieved) == 0:
+			precision = 0
+		else:
+			precision = len(intersection)/len(retrieved[:k])
+        
+		if len(pertinent) == 0:
+			rappel = 1.
+		else:
+			rappel = len(intersection)/len(pertinent)
+        
+		if rappel == 0 and precision == 0:
+			F = 0.
+		else:
+			F = (1 + self.Beta**2)*((precision * rappel)/((self.Beta**2)*precision + rappel))
+
+		evaluations["precision"] = precision
+		evaluations["recall"] = rappel
+		evaluations["F1"] = F
+		#evaluations["reciprocal rank"] = 1 + min([retrieved.index(pertinent) for pertinent in intersection]) #+1 pour faire démarrer les index à 1
+		return evaluations
+
+	def evaluate(self, retrieved, pertinent, k=5):
+
+		evaluations = {"precision": [], "recall": [], "F1": []}
+		
+		for i in range(len(retrieved)):
+			evals = self.evaluate_one(retrieved[i], pertinent[i], k=k)
+
+			evaluations["precision"].append(evals["precision"])
+			evaluations["recall"].append(evals["recall"])
+			evaluations["F1"].append(evals["F1"])
+			#evaluations["reciprocal rank"].append(evals["reciprocal rank"])
+
+		evaluations["precision"] = {"mean": np.array(evaluations["precision"]).mean(), "std": np.array(evaluations["precision"]).std()}
+		evaluations["recall"] = {"mean": np.array(evaluations["recall"]).mean(), "std": np.array(evaluations["recall"]).std()}
+		evaluations["F1"] = {"mean": np.array(evaluations["F1"]).mean(), "std": np.array(evaluations["F1"]).std()}
+		#evaluations["reciprocal rank"] = {"mean": np.array(valuations["reciprocal rank"]).mean(), "std": np.array(valuations["reciprocal rank"]).std()}
+		return evaluations
+		
