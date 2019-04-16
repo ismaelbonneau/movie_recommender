@@ -19,5 +19,5 @@ de metadata de l'API Omdb et de ratings utilisateur.
 
 les auteurs:
 
-<img src="images/genies2linfo.jpg">
+<img src="images/genies2linfo.jpg" width="400">
 
