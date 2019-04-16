@@ -149,8 +149,8 @@ class SVDpp:
 
 		#variables tensorflow
 		#U et I initialisés selon une loi normale et normalisés en divisant par k
-		U = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(shape[0], k)).astype(np.float32)), name="U")
-		I = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(k, shape[1])).astype(np.float32)), name="I")
+		U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float32)), name="U")
+		I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float32)), name="I")
 
 		#mean + item and user deviation from mean + embeddings
 		R_pred = b + b_U + b_I + tf.matmul(U, I)
