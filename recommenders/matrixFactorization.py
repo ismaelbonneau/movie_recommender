@@ -126,12 +126,22 @@ class SVDpp:
 		alpha: learning rate
 		"""
 
-		#moyenne item
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1))/ 10)
+		#moyenne item: baseline
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)) / 10.)
+
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
 		R = tf.constant(df.values / 10) #divisée par 10 pour obtenir des notes entre 0 et 1
+
+		#biais global 
+		b = tf.Variable(df.mean().mean() / 10., dtype=tf.float32, trainable=False)
+
+		#biais user
+		b_U = tf.Variable((df.mean().mean() - df.mean(axis=1).values.reshape(-1,1)) / 10., dtype=tf.float32, trainable=False, name="bU")
+
+		#biais item
+		b_I = tf.Variable((df.mean().mean() - df.mean(axis=0).values.reshape(-1,1).T) / 10., dtype=tf.float32, trainable=False, name="bI")
 
 		#variable tensorflow masque
 		mask_tf_train = tf.Variable(train)
@@ -139,23 +149,19 @@ class SVDpp:
 
 		#variables tensorflow
 		#U et I initialisés selon une loi normale et normalisés en divisant par k
-		U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float64)), name="U")
-		I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float64)), name="I")
+		U = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(shape[0], k)).astype(np.float32)), name="U")
+		I = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(k, shape[1])).astype(np.float32)), name="I")
 
-		R_pred = tf.matmul(U, I) #embeddings
+		#mean + item and user deviation from mean + embeddings
+		R_pred = b + b_U + b_I + tf.matmul(U, I)
 
 		#beta: paramètre de regularization
-		beta = tf.constant(reg, dtype=tf.float64, name="beta")
+		beta = tf.constant(reg, dtype=tf.float32, name="beta")
 		regularizer = beta * (tf.reduce_sum(tf.square(U)) + tf.reduce_sum(tf.square(I)))
 
 		#cout de l'algo NMF, norme matricielle de R - R_pred
 		cost = tf.reduce_sum(tf.square(tf.boolean_mask(R, mask_tf_train) - tf.boolean_mask(R_pred, mask_tf_train)))
 		cost += regularizer
-
-		#contraintes de non-négativité de U et I
-		clip_U = U.assign(tf.maximum(tf.zeros_like(U), U))
-		clip_I = I.assign(tf.maximum(tf.zeros_like(I), I))
-		clip = tf.group(clip_U, clip_I)
 
 		#erreur MSE train
 		mse_train = tf.reduce_mean(tf.square(tf.boolean_mask(R_pred, mask_tf_train) - tf.boolean_mask(R, mask_tf_train)), name="mse_train")
@@ -165,6 +171,7 @@ class SVDpp:
 		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
 		global_step = tf.Variable(0, trainable=False)
+		#learning rate decay
 		learning_rate = tf.train.exponential_decay(alpha, global_step, nbite, 0.98, staircase=True)
 
 		optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, global_step=global_step)
@@ -179,24 +186,28 @@ class SVDpp:
 		    sess.run(optimizer)
 		    sess.run(clip)
 		    if i%1000==0:
-		        prout = sess.run(cost)
-		        lol = sess.run(mse_train)
-		        mdr = sess.run(mse_test)
+		        cst = sess.run(cost)
+		        msetrain = sess.run(mse_train)
+		        msetest = sess.run(mse_test)
 		        if verbose:
-			        print("cost: %f" % prout)
-			        print("mse train: %f" % lol)
-			        print("mse test: %f" % mdr)
+			        print("cost: %f" % cst)
+			        print("mse train: %f" % msetrain)
+			        print("mse test: %f" % msetest)
 			        print("***************")
-		        costs.append((i, prout))
-		        mses_train.append((i, lol))
-		        mses_test.append((i, mdr))
+		        costs.append((i, cst))
+		        mses_train.append((i, msetrain))
+		        mses_test.append((i, msetest))
 		        
 		            
 		learnt_U = sess.run(U)
 		learnt_I = sess.run(I)
+		final_b_U = sess.run(b_U)
+		final_b_I = sess.run(b_U)
+		final_b = sess.run(b)
+
 		msebaseline = sess.run(baselineMSE)
 		if verbose:
 			print("baseline: ", msebaseline)
 		sess.close()
 
-		return learnt_U, learnt_I, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
+		return learnt_U, learnt_I, final_b_U, final_b_I, final_b, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
