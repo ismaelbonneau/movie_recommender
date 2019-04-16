@@ -2,19 +2,21 @@
 """
 Created on Thu Mar  7 16:50:09 2019
 
-@author: ismael Bonneau
+@author:
+
+  _____                               _ 
+  \_   \ ___  _ __ ___    __ _   ___ | |
+   / /\// __|| '_ ` _ \  / _` | / _ \| |
+/\/ /_  \__ \| | | | | || (_| ||  __/| |
+\____/  |___/|_| |_| |_| \__,_| \___||_|
+                                        
+
 """
 
 import time
 import numpy as np
 import tensorflow as tf
 from scipy.sparse import dok_matrix, csr_matrix
-
-####################################################################################
-
-
-
-####################################################################################
 
 
 class NMF:
@@ -45,8 +47,8 @@ class NMF:
 
 		#variables tensorflow
 		#U et I initialisés selon une loi normale et normalisés en divisant par k
-		U = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(shape[0], k)).astype(np.float64)), name="U")
-		I = tf.Variable(np.abs(np.random.normal(scale=1./k, size=(k, shape[1])).astype(np.float64)), name="I")
+		U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float64)), name="U")
+		I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float64)), name="I")
 
 		R_pred = tf.matmul(U, I) #embeddings
 
@@ -70,11 +72,10 @@ class NMF:
 		#baseline MSE test
 		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
-		alpha = 0.001 #learning rate
 		global_step = tf.Variable(0, trainable=False)
 		learning_rate = tf.train.exponential_decay(alpha, global_step, nbite, 0.98, staircase=True)
 
-		optimizer = tf.train.GradientDescentOptimizer(alpha).minimize(cost, global_step=global_step)
+		optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, global_step=global_step)
 
 		costs = []
 		mses_train = []
@@ -89,10 +90,11 @@ class NMF:
 		        prout = sess.run(cost)
 		        lol = sess.run(mse_train)
 		        mdr = sess.run(mse_test)
-		        print("cost: %f" % prout)
-		        print("mse train: %f" % lol)
-		        print("mse test: %f" % mdr)
-		        print("***************")
+		        if verbose:
+			        print("cost: %f" % prout)
+			        print("mse train: %f" % lol)
+			        print("mse test: %f" % mdr)
+			        print("***************")
 		        costs.append((i, prout))
 		        mses_train.append((i, lol))
 		        mses_test.append((i, mdr))
@@ -101,8 +103,8 @@ class NMF:
 		learnt_U = sess.run(U)
 		learnt_I = sess.run(I)
 		msebaseline = sess.run(baselineMSE)
-		print("baseline: ", msebaseline)
+		if verbose:
+			print("baseline: ", msebaseline)
 		sess.close()
 
 		return learnt_U, learnt_I, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
-
