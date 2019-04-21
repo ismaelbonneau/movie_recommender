@@ -17,14 +17,17 @@ import time
 import numpy as np
 import tensorflow as tf
 from scipy.sparse import dok_matrix, csr_matrix
+from sklearn.decomposition import FastICA
 
 
 class NMF:
 
-	def __init__(self, k):
+	def __init__(self, k, init="random"):
 
 		#number of latent factors
 		self.k = k
+		#methode d'initialisation
+		self.init = init
 
 	def run(self, df, train, test, nbite, reg, alpha=0.001, verbose=True):
 		"""
@@ -46,9 +49,24 @@ class NMF:
 		mask_tf_test = tf.Variable(test)
 
 		#variables tensorflow
-		#U et I initialisés selon une loi normale et normalisés en divisant par k
-		U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float64)), name="U")
-		I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float64)), name="I")
+
+		if self.init == "random":
+			#U et I initialisés selon une loi normale et normalisés en divisant par k
+			U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float64)), name="U")
+			I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float64)), name="I")
+		if self.init == "ica":
+			matrix = dok_matrix(df.shape, dtype=np.float64)
+
+			for i in range(df.shape[0]):
+			    for j in range(df.shape[1]):
+			        if not np.isnan(df.values[i,j]):
+			            matrix[i, j] = df.values[i,j]
+
+			ica = FastICA(n_components=self.k)
+
+			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray() / 10.)), name="U")
+			I = tf.Variable(np.abs(ica.components_), name="I")
+
 
 		R_pred = tf.matmul(U, I) #embeddings
 
@@ -127,12 +145,12 @@ class SVDpp:
 		"""
 
 		#moyenne item: baseline
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)) / 10.)
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)) / 10., dtype=tf.float32)
 
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
-		R = tf.constant(df.values / 10) #divisée par 10 pour obtenir des notes entre 0 et 1
+		R = tf.constant(df.values / 10, dtype=tf.float32) #divisée par 10 pour obtenir des notes entre 0 et 1
 
 		#biais global 
 		b = tf.Variable(df.mean().mean() / 10., dtype=tf.float32, trainable=False)
@@ -170,7 +188,7 @@ class SVDpp:
 		#baseline MSE test
 		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
-		global_step = tf.Variable(0, trainable=False)
+		global_step = tf.Variable(0, dtype=tf.float32, trainable=False)
 		#learning rate decay
 		learning_rate = tf.train.exponential_decay(alpha, global_step, nbite, 0.98, staircase=True)
 
@@ -184,7 +202,6 @@ class SVDpp:
 		sess.run(tf.initialize_all_variables())
 		for i in range(nbite):
 		    sess.run(optimizer)
-		    sess.run(clip)
 		    if i%1000==0:
 		        cst = sess.run(cost)
 		        msetrain = sess.run(mse_train)
