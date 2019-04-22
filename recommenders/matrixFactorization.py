@@ -67,12 +67,26 @@ class NMF:
 			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray() / 10.)), name="U")
 			I = tf.Variable(np.abs(ica.components_), name="I")
 
+		if self.init == "pca":
+			matrix = dok_matrix(df.shape, dtype=np.float64)
+
+			for i in range(df.shape[0]):
+			    for j in range(df.shape[1]):
+			        if not np.isnan(df.values[i,j]):
+			            matrix[i, j] = df.values[i,j]
+
+			ica = FastICA(n_components=self.k)
+
+			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray() / 10.)), name="U")
+			I = tf.Variable(np.abs(ica.components_), name="I")			
+
 
 		R_pred = tf.matmul(U, I) #embeddings
 
 		#beta: paramètre de regularization
 		beta = tf.constant(reg, dtype=tf.float64, name="beta")
-		regularizer = beta * (tf.reduce_sum(tf.square(U)) + tf.reduce_sum(tf.square(I)))
+		#regularization L1
+		regularizer = beta * (tf.reduce_sum(U) + tf.reduce_sum(I))
 
 		#cout de l'algo NMF, norme matricielle de R - R_pred
 		cost = tf.reduce_sum(tf.square(tf.boolean_mask(R, mask_tf_train) - tf.boolean_mask(R_pred, mask_tf_train)))
@@ -91,9 +105,8 @@ class NMF:
 		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
 		global_step = tf.Variable(0, trainable=False)
-		learning_rate = tf.train.exponential_decay(alpha, global_step, nbite, 0.98, staircase=True)
 
-		optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, global_step=global_step)
+		optimizer = tf.train.AdamOptimizer(alpha).minimize(cost, global_step=global_step)
 
 		costs = []
 		mses_train = []
@@ -104,7 +117,7 @@ class NMF:
 		for i in range(nbite):
 		    sess.run(optimizer)
 		    sess.run(clip)
-		    if i%1000==0:
+		    if i%100==0:
 		        prout = sess.run(cost)
 		        lol = sess.run(mse_train)
 		        mdr = sess.run(mse_test)
