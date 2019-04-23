@@ -17,16 +17,20 @@ import time
 import numpy as np
 import tensorflow as tf
 from scipy.sparse import dok_matrix, csr_matrix
-from sklearn.decomposition import FastICA
+from sklearn.decomposition import FastICA, PCA
 
 
 class NMF:
 
-	def __init__(self, k, init="random"):
+	def __init__(self, k, init="random", solver="adam"):
 
 		#number of latent factors
 		self.k = k
 		#methode d'initialisation
+		if solver not in ["sgd", "adam", "rmsprop"]:
+			raise ValueError(str(solver) + " is not a correct value for parameter solver. Valid ones are 'sgd', 'adam', 'rmsprop'")
+		if init not in ["random", "pca", "ica"]:
+			raise ValueError(str(init) + " is not a correct value for parameter init. Valid ones are 'random', 'pca', 'ica'")
 		self.init = init
 
 	def run(self, df, train, test, nbite, reg, alpha=0.001, verbose=True):
@@ -75,10 +79,10 @@ class NMF:
 			        if not np.isnan(df.values[i,j]):
 			            matrix[i, j] = df.values[i,j]
 
-			ica = FastICA(n_components=self.k)
+			pca = PCA(n_components=self.k)
 
-			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray() / 10.)), name="U")
-			I = tf.Variable(np.abs(ica.components_), name="I")			
+			U = tf.Variable(np.abs(pca.fit_transform(matrix.toarray() / 10.)), name="U")
+			I = tf.Variable(np.abs(pca.components_), name="I")			
 
 
 		R_pred = tf.matmul(U, I) #embeddings
@@ -106,7 +110,13 @@ class NMF:
 
 		global_step = tf.Variable(0, trainable=False)
 
-		optimizer = tf.train.AdamOptimizer(alpha).minimize(cost, global_step=global_step)
+		if self.solver == "adam":
+			optimizer = tf.train.AdamOptimizer(alpha).minimize(cost, global_step=global_step)
+		elif self.solver == "sgd":
+			optimizer = tf.train.GradientDescentOptimizer(alpha).minimize(cost, global_step=global_step)
+		else:
+			#optimiseur rmsprop
+			optimizer = tf.train.RMSPropOptimizer(alpha).minimize(cost, global_step=global_step)
 
 		costs = []
 		mses_train = []
