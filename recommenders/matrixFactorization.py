@@ -32,6 +32,7 @@ class NMF:
 		if init not in ["random", "pca", "ica"]:
 			raise ValueError(str(init) + " is not a correct value for parameter init. Valid ones are 'random', 'pca', 'ica'")
 		self.init = init
+		self.solver = solver
 
 	def run(self, df, train, test, nbite, reg, alpha=0.001, verbose=True):
 		"""
