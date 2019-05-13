@@ -27,25 +27,11 @@ import requests
 import pandas as pd
 
 #essai:
-series = ['2733_NCIS__Los_Angeles', '2956_Criminal_Minds', '1041_CSI__Crime_Scene_Investigation', '1910_NCIS',
- '1830_CSI__Miami', '207_Bones', '2212_The_Mentalist', '2767_The_Blacklist', '413_Dexter', '1845_Sherlock_(2010)',
- '884_The_X-Files', '3259_Stargate_SG-1', '381_Star_Trek__The_Next_Generation', '2120_Doctor_Who_(1963)',
- '2091_Star_Trek__Deep_Space_Nine', '384_Twilight_Zone', '186_Doctor_Who', '25_Friends', '1704_Rick_and_Morty',
- '2469_The_Simpsons', '2556_The_Big_Bang_Theory', '292_Modern_Family', '1718_South_Park', '95_How_I_Met_Your_Mother',
- '3012_Grey_s_Anatomy', '2261_Buffy_The_Vampire_Slayer', '175_The_Walking_Dead', '1262_Lost', '1039_Narcos',
- '818_Gomorra_(2014)', '2123_Sense8', '3280_Peaky_Blinders', '121_Suits', '76_Breaking_Bad', '217_Game_of_Thrones',
- '2567_House', '1701_Outlander', '2936_Desperate_Housewives', '2053_Charmed', '345_Dallas', '1641_Pretty_Little_Liars',
- '3314_Shameless', '1906_The_Vampire_Diaries', '196_Smallville']
-
-
 from utils.load_data import getMostImportantSeries
 
 path = "dataset"
 
-seriesplusimportantes, _ = getMostImportantSeries(path)
-
-lol = list(set(series) | set(seriesplusimportantes[:1000]))
-series = lol
+series, _ = getMostImportantSeries(path)
 series = [serie.replace("__", "_") for serie in series]
 
 #==================================================#
@@ -140,7 +126,7 @@ if r.status_code == 200:
     print("-------------------------------")    
     print("found {} series out of {}".format(len(dataframe), len(series)))
     
-    dataframe.to_csv(path_or_buf="series.csv", header=True, encoding="utf-8")
+    dataframe.to_csv(path_or_buf="series.csv", header=True, encoding="utf-8", index=False)
                 
 else:
     print("authentification impossible... error {}".format(r.status_code))
