@@ -47,8 +47,7 @@ class NMF:
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
-		R = tf.constant(df.values / 10) #divisée par 10 pour obtenir des notes entre 0 et 1
-
+		R = tf.constant(df.values)
 		#variable tensorflow masque
 		mask_tf_train = tf.Variable(train)
 		mask_tf_test = tf.Variable(test)
@@ -69,7 +68,7 @@ class NMF:
 
 			ica = FastICA(n_components=self.k)
 
-			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray() / 10.)), name="U")
+			U = tf.Variable(np.abs(ica.fit_transform(matrix.toarray())), name="U")
 			I = tf.Variable(np.abs(ica.components_), name="I")
 
 		if self.init == "pca":
@@ -82,7 +81,7 @@ class NMF:
 
 			pca = PCA(n_components=self.k)
 
-			U = tf.Variable(np.abs(pca.fit_transform(matrix.toarray() / 10.)), name="U")
+			U = tf.Variable(np.abs(pca.fit_transform(matrix.toarray())), name="U")
 			I = tf.Variable(np.abs(pca.components_), name="I")			
 
 
@@ -169,21 +168,21 @@ class SVDpp:
 		"""
 
 		#moyenne item: baseline
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)) / 10., dtype=tf.float32)
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)), dtype=tf.float32)
 
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
-		R = tf.constant(df.values / 10, dtype=tf.float32) #divisée par 10 pour obtenir des notes entre 0 et 1
+		R = tf.constant(df.values, dtype=tf.float32)
 
 		#biais global 
-		b = tf.Variable(df.mean().mean() / 10., dtype=tf.float32, trainable=False)
+		b = tf.Variable(df.mean().mean(), dtype=tf.float32, trainable=False)
 
 		#biais user
-		b_U = tf.Variable((df.mean().mean() - df.mean(axis=1).values.reshape(-1,1)) / 10., dtype=tf.float32, trainable=False, name="bU")
+		b_U = tf.Variable((df.mean().mean() - df.mean(axis=1).values.reshape(-1,1)), dtype=tf.float32, trainable=False, name="bU")
 
 		#biais item
-		b_I = tf.Variable((df.mean().mean() - df.mean(axis=0).values.reshape(-1,1).T) / 10., dtype=tf.float32, trainable=False, name="bI")
+		b_I = tf.Variable((df.mean().mean() - df.mean(axis=0).values.reshape(-1,1).T), dtype=tf.float32, trainable=False, name="bI")
 
 		#variable tensorflow masque
 		mask_tf_train = tf.Variable(train)
@@ -226,7 +225,7 @@ class SVDpp:
 		sess.run(tf.initialize_all_variables())
 		for i in range(nbite):
 		    sess.run(optimizer)
-		    if i%1000==0:
+		    if i%100==0:
 		        cst = sess.run(cost)
 		        msetrain = sess.run(mse_train)
 		        msetest = sess.run(mse_test)
