@@ -43,7 +43,7 @@ class NMF:
 		"""
 
 		#moyenne item
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)))
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)))
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
@@ -168,7 +168,7 @@ class SVDpp:
 		"""
 
 		#moyenne item: baseline
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(1423,1)), dtype=tf.float32)
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)), dtype=tf.float32)
 
 		shape = df.shape
 
@@ -251,3 +251,93 @@ class SVDpp:
 		sess.close()
 
 		return learnt_U, learnt_I, final_b_U, final_b_I, final_b, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
+
+
+class triNMF:
+
+	def __init__(self, k):
+
+		#number of latent factors
+		self.k = k
+
+	def run(self, df, sim, train, test, steps, reg, alpha=0.001, verbose=True)
+		#moyenne item
+		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)))
+
+		shape = df.shape
+
+		#constante: la matrice R à reconstituer entièrement
+		R = tf.constant(df.values) #divisée par 10 pour obtenir des notes entre 0 et 1
+		#constante: la matrice S de similarités (sans valeurs manquantes) à approximer par QxI
+		S = tf.constant(sim, dtype=tf.float64)
+
+		#variable tensorflow masque
+		mask_tf_train = tf.Variable(train)
+		mask_tf_test = tf.Variable(test)
+
+		#variables tensorflow
+		#U et I initialisés selon une loi normale d'écart type 1/k
+		U = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[0], self.k)).astype(np.float64)), name="U")
+		I = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(self.k, shape[1])).astype(np.float64)), name="I")
+		Q = tf.Variable(np.abs(np.random.normal(scale=1./self.k, size=(shape[1], self.k)).astype(np.float64)), name="Q", trainable=False)
+
+		R_pred = tf.matmul(U, I) #embeddings
+
+		#beta: paramètre de regularization
+		beta = tf.constant(reg, dtype=tf.float64, name="beta")
+		regularizer = beta * (tf.square(tf.reduce_sum(S - tf.matmul(Q, I))))
+
+		#cout de l'algo NMF, norme matricielle de R - R_pred
+		cost = tf.reduce_sum(tf.square(tf.boolean_mask(R, mask_tf_train) - tf.boolean_mask(R_pred, mask_tf_train)))
+		cost += regularizer
+
+		#contraintes de non-négativité de U et I
+		clip_U = U.assign(tf.maximum(tf.zeros_like(U), U))
+		clip_I = I.assign(tf.maximum(tf.zeros_like(I), I))
+		clip = tf.group(clip_U, clip_I)
+
+		#erreur MSE train
+		mse_train = tf.reduce_mean(tf.square(tf.boolean_mask(R_pred, mask_tf_train) - tf.boolean_mask(R, mask_tf_train)), name="mse_train")
+		mse_test = tf.reduce_mean(tf.square(tf.boolean_mask(R_pred, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)), name="mse_test")
+		#mse similarités
+		mse_sim = tf.reduce_mean(tf.square(S - tf.matmul(Q, I)))
+
+		#baseline MSE test
+		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
+
+		global_step = tf.Variable(0, trainable=False)
+
+		optimizer = tf.train.AdamOptimizer(alpha).minimize(cost, global_step=global_step)
+
+		costs = []
+		mses_train = []
+		mses_test = []
+		mses_sim = []
+
+		sess = tf.Session()
+		sess.run(tf.initialize_all_variables())
+		for i in range(steps):
+		    sess.run(optimizer)
+		    sess.run(clip)
+		    if i%100==0:
+		        cst = sess.run(cost)
+		        if verbose:
+		        	print(cst)
+		        msetrain = sess.run(mse_train)
+		        msetest = sess.run(mse_test)
+		        msesim = sess.run(mse_sim)
+		        costs.append((i, cst))
+		        mses_train.append((i, msetrain))
+		        mses_test.append((i, msetest))
+		        mses_sim.append((i, msesim))
+		            
+		learnt_U = sess.run(U)
+		learnt_I = sess.run(I)
+		msebaseline = sess.run(baselineMSE)
+		sess.close()
+
+		if verbose:
+			print("baseline: ", msebaseline)
+
+	return learnt_U, learnt_I, final_b_U, final_b_I, final_b, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
+
