@@ -254,16 +254,15 @@ class SVDpp:
 
 
 class triNMF:
+	"""
+	"""
 
 	def __init__(self, k):
 
 		#number of latent factors
 		self.k = k
 
-	def run(self, df, sim, train, test, steps, reg, alpha=0.001, verbose=True)
-		#moyenne item
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)))
-
+	def run(self, df, sim, train, test, steps, reg, alpha=0.001, verbose=True):
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
@@ -302,9 +301,6 @@ class triNMF:
 		#mse similarités
 		mse_sim = tf.reduce_mean(tf.square(S - tf.matmul(Q, I)))
 
-		#baseline MSE test
-		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
-
 		global_step = tf.Variable(0, trainable=False)
 
 		optimizer = tf.train.AdamOptimizer(alpha).minimize(cost, global_step=global_step)
@@ -321,8 +317,6 @@ class triNMF:
 		    sess.run(clip)
 		    if i%100==0:
 		        cst = sess.run(cost)
-		        if verbose:
-		        	print(cst)
 		        msetrain = sess.run(mse_train)
 		        msetest = sess.run(mse_test)
 		        msesim = sess.run(mse_sim)
@@ -330,14 +324,15 @@ class triNMF:
 		        mses_train.append((i, msetrain))
 		        mses_test.append((i, msetest))
 		        mses_sim.append((i, msesim))
+		        if verbose:
+		        	print("cost: %f" % cst)
+			        print("mse train: %f" % msetrain)
+			        print("mse test: %f" % msetest)
+			        print("***************")
 		            
 		learnt_U = sess.run(U)
 		learnt_I = sess.run(I)
-		msebaseline = sess.run(baselineMSE)
 		sess.close()
 
-		if verbose:
-			print("baseline: ", msebaseline)
-
-	return learnt_U, learnt_I, final_b_U, final_b_I, final_b, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
+		return learnt_U, learnt_I, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
 
