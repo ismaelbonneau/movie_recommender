@@ -9,11 +9,41 @@
 
 import numpy as np
 from scipy.stats import ttest_ind
+from difflib import SequenceMatcher
 
 class EvalIRmodel:
 
 	def __init__(self):
 		self.Beta = 2.0
+
+	def buildPertinents(self, series_df):
+	    everything = series_df[["seriesname","genres"]].values
+
+	    ms = []
+	    pertinents = []
+	    skippable = []
+	    forbidden = ['ction','Anim','ster','tion']
+	    for c , one in enumerate(everything):
+	        string1 = one[1]
+	        tmp = []
+	        for two in everything:
+	            string2 = two[1]
+	            nom = two[0]
+	            match = SequenceMatcher(None, string1, string2).find_longest_match(0, len(string1), 0, len(string2))
+	            mots = string1[match.a: match.a + match.size].split("-")
+	            yes = False
+	            for m in mots:
+	                if ((len(m)<4) or (m in forbidden)):
+	                    continue
+	                yes = True
+	                break
+	            if yes:
+	                tmp.append(nom)
+	        if len(tmp) == 0:
+	            skippable.append(c)
+	            continue
+	        pertinents.append(tmp)
+	    return pertinents, skippable
 
 	def evaluate_one(self,retrieved, pertinent, k=5):
 		"""
