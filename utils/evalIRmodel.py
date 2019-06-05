@@ -11,6 +11,26 @@ import numpy as np
 from scipy.stats import ttest_ind
 from difflib import SequenceMatcher
 
+def mse_mae(df, test, pred, baseline):
+    mse = []
+    msebaseline = []
+    mae = []
+    maebaseline = []
+    for i in range(df.shape[0]):
+        for j in range(df.shape[1]):
+            if test[i,j]:
+                mse.append((df.values[i,j] - pred[i,j])**2)
+                mae.append(np.abs(df.values[i,j] - pred[i,j]))
+
+                msebaseline.append((df.values[i,j] - baseline[i,j])**2)
+                maebaseline.append(np.abs(df.values[i,j] - baseline[i,j]))
+
+    print("mse: ", np.mean(mse))
+    print("mae: ", np.mean(mae))
+    print("mse baseline: ", np.mean(msebaseline))
+    print("mae baseline: ", np.mean(maebaseline))
+
+
 class EvalIRmodel:
 
 	def __init__(self):

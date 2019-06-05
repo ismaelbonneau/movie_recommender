@@ -43,7 +43,7 @@ class NMF:
 		"""
 
 		#moyenne item
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)))
+		#baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)))
 		shape = df.shape
 
 		#constante: la matrice R à reconstituer entièrement
@@ -106,7 +106,7 @@ class NMF:
 		mse_test = tf.reduce_mean(tf.square(tf.boolean_mask(R_pred, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)), name="mse_test")
 
 		#baseline MSE test
-		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
+		#baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
 		global_step = tf.Variable(0, trainable=False)
 
@@ -143,9 +143,9 @@ class NMF:
 		            
 		learnt_U = sess.run(U)
 		learnt_I = sess.run(I)
-		msebaseline = sess.run(baselineMSE)
-		if verbose:
-			print("baseline: ", msebaseline)
+		#msebaseline = sess.run(baselineMSE)
+		#if verbose:
+			#print("baseline: ", msebaseline)
 		sess.close()
 
 		return learnt_U, learnt_I, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
@@ -168,7 +168,7 @@ class SVDpp:
 		"""
 
 		#moyenne item: baseline
-		baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)), dtype=tf.float32)
+		#baseline = tf.constant(np.tile(np.array(df.mean(axis=0)),(df.shape[1],1)), dtype=tf.float32)
 
 		shape = df.shape
 
@@ -209,7 +209,7 @@ class SVDpp:
 		mse_test = tf.reduce_mean(tf.square(tf.boolean_mask(R_pred, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)), name="mse_test")
 
 		#baseline MSE test
-		baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
+		#baselineMSE = tf.reduce_mean(tf.square(tf.boolean_mask(baseline, mask_tf_test) - tf.boolean_mask(R, mask_tf_test)))
 
 		global_step = tf.Variable(0, dtype=tf.float32, trainable=False)
 		#learning rate decay
@@ -245,9 +245,9 @@ class SVDpp:
 		final_b_I = sess.run(b_U)
 		final_b = sess.run(b)
 
-		msebaseline = sess.run(baselineMSE)
-		if verbose:
-			print("baseline: ", msebaseline)
+		#msebaseline = sess.run(baselineMSE)
+		#if verbose:
+			#print("baseline: ", msebaseline)
 		sess.close()
 
 		return learnt_U, learnt_I, final_b_U, final_b_I, final_b, {"mse_train": mses_train, "mse_test": mses_test, "cost": costs}
