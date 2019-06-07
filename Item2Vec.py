@@ -184,9 +184,9 @@ class Item2Vec:
                 preds.append(np.NaN)
             else:
                 preds.append( np.average(row[indices], weights=w[indices]))
-        xx = pd.DataFrame({'Predicted': preds})
+        xx = pd.DataFrame({'Original': df[user].values}, index = df.index)        
         
-        xx['Original'] = df[user]
+        xx['Predicted'] = preds
         xx = xx.replace({0:np.nan})
         if dropnan:
             xx = xx.dropna()
