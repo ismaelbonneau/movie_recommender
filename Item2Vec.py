@@ -173,7 +173,7 @@ class Item2Vec:
         
         size = len(sims[user][1])
         if weighted:
-            w = sims[user][1]
+            w = (sims[user][1]+1)/2
         else:
             w = np.ones(size)
             
